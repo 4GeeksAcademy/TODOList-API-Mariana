@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 
 const TodoList = () => {
   const [tasks, setTasks] = useState([]);
-  const username = "marianadavid"; // 👈 usa tu nombre de usuario único
+  const username = "marianadavid"; // 
 
-  // ✅ Cargar tareas al iniciar (GET)
+ 
   useEffect(() => {
     getTasks();
   }, []);
@@ -14,12 +14,11 @@ const TodoList = () => {
       .then(resp => resp.json())
       .then(data => {
         if (Array.isArray(data)) setTasks(data);
-        else setTasks([]); // Si no hay tareas
+        else setTasks([]);
       })
       .catch(error => console.log("Error al cargar tareas:", error));
   };
 
-  // ✅ Crear usuario (solo la primera vez)
   const createUser = () => {
     fetch(`https://playground.4geeks.com/todo/users/${username}`, {
       method: "POST",
@@ -30,7 +29,6 @@ const TodoList = () => {
       .catch(err => console.log("Error al crear usuario:", err));
   };
 
-  // ✅ Agregar una nueva tarea (POST)
   const addTask = newTask => {
     const taskObj = { label: newTask, is_done: false };
     fetch(`https://playground.4geeks.com/todo/todos/${username}`, {
@@ -39,11 +37,10 @@ const TodoList = () => {
       headers: { "Content-Type": "application/json" }
     })
       .then(resp => resp.json())
-      .then(() => getTasks()) // Recarga lista
+      .then(() => getTasks())
       .catch(err => console.log("Error al agregar tarea:", err));
   };
 
-  // ✅ Eliminar una tarea individual (DELETE)
   const deleteTask = id => {
     fetch(`https://playground.4geeks.com/todo/todos/${id}`, {
       method: "DELETE"
@@ -53,7 +50,6 @@ const TodoList = () => {
       .catch(err => console.log("Error al eliminar tarea:", err));
   };
 
-  // ✅ Eliminar todas las tareas del usuario
   const clearAll = () => {
     fetch(`https://playground.4geeks.com/todo/users/${username}`, {
       method: "DELETE"
@@ -62,7 +58,7 @@ const TodoList = () => {
       .catch(err => console.log("Error al limpiar tareas:", err));
   };
 
-  // ✅ Interfaz visual
+ 
   return (
     <div className="todo-container">
       <h1>My TODO List</h1>
