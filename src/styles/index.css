@@ -1,17 +1,31 @@
+body {
+  background: linear-gradient(to right, #74ebd5, #acb6e5);
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
 .todo-container {
-  max-width: 400px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+  max-width: 420px;
+  margin: 60px auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.15);
+  padding: 25px;
   text-align: center;
+}
+
+.todo-container h1 {
+  color: #333;
+  font-size: 24px;
 }
 
 .todo-container input {
   width: 90%;
   padding: 10px;
   margin: 15px 0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
 }
 
 .todo-container ul {
@@ -22,8 +36,22 @@
 .todo-container li {
   display: flex;
   justify-content: space-between;
-  margin: 8px 0;
-  padding: 6px 10px;
-  background: #f3f3f3;
+  align-items: center;
+  background: #f6f6f6;
+  padding: 8px 12px;
   border-radius: 5px;
+  margin: 6px 0;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
