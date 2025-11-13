@@ -2,117 +2,159 @@ import React, { useState, useEffect } from "react";
 
 const TodoList = () => {
   const [tasks, setTasks] = useState([]);
-  const username = "marianadavid"; 
-  const apiUrl = `https://playground.4geeks.com/todo`;
+  const username = "marianadavid";
+  const apiUrl = "https://playground.4geeks.com/todo";
 
+  // 🔹 Cargar usuario al iniciar
   useEffect(() => {
     getUser();
   }, []);
 
-  const getUser = () => {
-    fetch(`${apiUrl}/users/${username}`)
-      .then(resp => {
-        if (!resp.ok) {
-          if (resp.status === 404) {
-            createUser(); 
-          } else {
-            throw new Error("Error al obtener usuario");
-          }
-        }
-        return resp.json();
-      })
-      .then(data => {
-        if (data && Array.isArray(data.todos)) setTasks(data.todos);
-      })
-      .catch(error => console.error("Error cargando tareas:", error));
+  // 🔹 Obtener tareas del usuario
+  const getUser = async () => {
+    try {
+      const resp = await fetch(`${apiUrl}/users/${username}`);
+
+      // Usuario NO existe → crearlo
+      if (resp.status === 404) {
+        console.log("Usuario no existe, creando...");
+        return createUser();
+      }
+
+      if (!resp.ok) throw new Error("Error cargando usuario");
+
+      const data = await resp.json();
+      console.log("Tareas cargadas:", data.todos);
+      setTasks(data.todos || []);
+    } catch (error) {
+      console.error("❌ Error al cargar usuario:", error);
+    }
   };
 
-  const createUser = () => {
-    fetch(`${apiUrl}/users/${username}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    })
-      .then(resp => {
-        if (resp.status === 400) {
-          console.log("El usuario ya existe, continuando...");
-          getUser();
-          return;
-        }
-        if (!resp.ok) throw new Error("Error al crear usuario");
-        return resp.json();
-      })
-      .then(() => getUser())
-      .catch(err => console.error("Error creando usuario:", err));
+  // 🔹 Crear usuario si no existe
+  const createUser = async () => {
+    try {
+      const resp = await fetch(`${apiUrl}/users/${username}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!resp.ok && resp.status !== 400) {
+        throw new Error("Error al crear usuario");
+      }
+
+      console.log("🧍 Usuario creado o ya existente");
+      getUser();
+    } catch (error) {
+      console.error("❌ Error al crear usuario:", error);
+    }
   };
 
-  const addTask = newTask => {
-    if (newTask.trim() === "") return;
-    const taskObj = { label: newTask, is_done: false };
+  // 🔹 Agregar tarea
+  const addTask = async (newTask) => {
+    if (!newTask.trim()) return;
 
-    fetch(`${apiUrl}/todos/${username}`, {
-      method: "POST",
-      body: JSON.stringify(taskObj),
-      headers: { "Content-Type": "application/json" }
-    })
-      .then(resp => {
-        if (!resp.ok) throw new Error("Error al agregar tarea");
-        return resp.json();
-      })
-      .then(() => getUser())
-      .catch(err => console.error("Error agregando tarea:", err));
+    const taskObj = {
+      label: newTask,
+      is_done: false,
+    };
+
+    try {
+      const resp = await fetch(`${apiUrl}/todos/${username}`, {
+        method: "POST",
+        body: JSON.stringify(taskObj),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!resp.ok) throw new Error("Error al agregar tarea");
+
+      const createdTask = await resp.json();
+
+      // 🔥 Agregarla al estado sin recargar toda la lista
+      setTasks([...tasks, createdTask]);
+
+      console.log("✔ Tarea añadida:", createdTask);
+    } catch (error) {
+      console.error("❌ Error al agregar tarea:", error);
+    }
   };
 
-  const deleteTask = id => {
-    fetch(`${apiUrl}/todos/${id}`, {
-      method: "DELETE"
-    })
-      .then(resp => {
-        if (!resp.ok) throw new Error("Error al eliminar tarea");
-        return resp.json();
-      })
-      .then(() => getUser())
-      .catch(err => console.error("Error eliminando tarea:", err));
+  // 🔹 Eliminar tarea (FIX: actualizar estado inmediatamente)
+  const deleteTask = async (id) => {
+    try {
+      const resp = await fetch(`${apiUrl}/todos/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!resp.ok) throw new Error("Error al eliminar tarea");
+
+      // 🔥 Actualizar estado al instante (sin recargar la página)
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+
+      console.log("🗑️ Tarea eliminada:", id);
+    } catch (error) {
+      console.error("❌ Error al eliminar tarea:", error);
+    }
   };
 
-  
-  const clearAll = () => {
-    fetch(`${apiUrl}/users/${username}`, {
-      method: "DELETE"
-    })
-      .then(resp => {
-        if (!resp.ok) throw new Error("Error al limpiar usuario");
-        setTasks([]);
-      })
-      .catch(err => console.error("Error limpiando tareas:", err));
+  // 🔹 Eliminar todas las tareas
+  const clearAll = async () => {
+    try {
+      const resp = await fetch(`${apiUrl}/users/${username}`, {
+        method: "DELETE",
+      });
+
+      if (!resp.ok) throw new Error("Error al limpiar tareas");
+
+      setTasks([]);
+
+      console.log("🧹 Todas las tareas eliminadas");
+    } catch (error) {
+      console.error("❌ Error al limpiar tareas:", error);
+    }
   };
 
   return (
-    <div className="todo-container">
-      <h1>My TODO List</h1>
-      <button onClick={createUser}>🧍 Crear usuario</button>
+    <div className="todo-container text-center p-4">
+      <h1 className="mb-3">📋 My TODO List</h1>
+
+      <button className="btn btn-primary mb-3" onClick={createUser}>
+        🧍 Crear usuario
+      </button>
 
       <input
         type="text"
         placeholder="Escribe una tarea y presiona Enter"
-        onKeyDown={e => {
-          if (e.key === "Enter" && e.target.value.trim() !== "") {
+        className="form-control mb-3"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && e.target.value.trim()) {
             addTask(e.target.value);
             e.target.value = "";
           }
         }}
       />
 
-      <ul>
-        {tasks.map(task => (
-          <li key={task.id}>
+      <ul className="list-group">
+        {tasks.map((task) => (
+          <li
+            key={task.id}
+            className="list-group-item d-flex justify-content-between align-items-center"
+          >
             {task.label}
-            <button onClick={() => deleteTask(task.id)}>❌</button>
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => deleteTask(task.id)}
+            >
+              ❌
+            </button>
           </li>
         ))}
       </ul>
 
       {tasks.length > 0 && (
-        <button onClick={clearAll}>🗑️ Eliminar todas</button>
+        <button className="btn btn-warning mt-3" onClick={clearAll}>
+          🗑️ Eliminar todas
+        </button>
       )}
     </div>
   );
